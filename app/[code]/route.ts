@@ -28,11 +28,10 @@ export async function GET(req: NextRequest, { params }: Params) {
   const ip = forwardedFor ? forwardedFor.split(",")[0] : null;
   const userAgent = req.headers.get("user-agent");
 
-  try {
-    await recordClickForCode(code, ip, userAgent);
-  } catch (err) {
+  // Fire-and-forget analytics so redirect stays fast.
+  recordClickForCode(code, ip, userAgent).catch((err) => {
     console.error("Failed to record click", err);
-  }
+  });
 
   return NextResponse.redirect(record.targetUrl, { status: 302 });
 }

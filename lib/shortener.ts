@@ -13,6 +13,18 @@ export interface ShortUrl {
   createdAt: Date;
 }
 
+declare global {
+  // eslint-disable-next-line no-var
+  var _shortUrlCache: Map<string, ShortUrl> | undefined;
+}
+
+const shortUrlCache: Map<string, ShortUrl> =
+  global._shortUrlCache ?? new Map<string, ShortUrl>();
+
+if (!global._shortUrlCache) {
+  global._shortUrlCache = shortUrlCache;
+}
+
 function normalizeUrl(raw: string): string {
   const trimmed = raw.trim();
 
@@ -52,6 +64,7 @@ export async function createShortUrl(rawUrl: string): Promise<ShortUrl> {
 
     try {
       await collection.insertOne(doc);
+      shortUrlCache.set(shortCode, doc);
       return doc;
     } catch (err: unknown) {
       if (
@@ -74,6 +87,16 @@ export async function resolveShortCode(
 ): Promise<ShortUrl | null> {
   const db = await getDb();
   const collection = db.collection<ShortUrl>("short_urls");
-  return collection.findOne({ shortCode });
+
+  const cached = shortUrlCache.get(shortCode);
+  if (cached) {
+    return cached;
+  }
+
+  const fromDb = await collection.findOne({ shortCode });
+  if (fromDb) {
+    shortUrlCache.set(shortCode, fromDb);
+  }
+  return fromDb;
 }
 
