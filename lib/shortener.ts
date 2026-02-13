@@ -1,5 +1,4 @@
 import { customAlphabet } from "nanoid";
-import type { ObjectId } from "mongodb";
 import { getDb } from "./mongodb";
 
 const ALPHABET =
@@ -9,7 +8,6 @@ const CODE_LENGTH = 7;
 const nanoid = customAlphabet(ALPHABET, CODE_LENGTH);
 
 export interface ShortUrl {
-  _id?: ObjectId;
   shortCode: string;
   targetUrl: string;
   createdAt: Date;
@@ -53,10 +51,7 @@ export async function createShortUrl(rawUrl: string): Promise<ShortUrl> {
     };
 
     try {
-      // TypeScript has trouble reconciling our app-level ShortUrl with MongoDB's OptionalId<T>.
-      // At runtime this is safe because MongoDB will assign _id for us.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await collection.insertOne(doc as any);
+      await collection.insertOne(doc);
       return doc;
     } catch (err: unknown) {
       if (
