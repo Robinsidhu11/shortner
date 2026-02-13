@@ -53,7 +53,10 @@ export async function createShortUrl(rawUrl: string): Promise<ShortUrl> {
     };
 
     try {
-      await collection.insertOne(doc);
+      // TypeScript has trouble reconciling our app-level ShortUrl with MongoDB's OptionalId<T>.
+      // At runtime this is safe because MongoDB will assign _id for us.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await collection.insertOne(doc as any);
       return doc;
     } catch (err: unknown) {
       if (
