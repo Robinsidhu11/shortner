@@ -1,4 +1,5 @@
 import { customAlphabet } from "nanoid";
+import type { ObjectId } from "mongodb";
 import { getDb } from "./mongodb";
 
 const ALPHABET =
@@ -8,7 +9,7 @@ const CODE_LENGTH = 7;
 const nanoid = customAlphabet(ALPHABET, CODE_LENGTH);
 
 export interface ShortUrl {
-  _id?: unknown;
+  _id?: ObjectId;
   shortCode: string;
   targetUrl: string;
   createdAt: Date;
